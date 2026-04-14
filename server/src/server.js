@@ -27,6 +27,14 @@ async function createServer() {
     res.json({ ok: true });
   });
 
+  app.get("/healthz", (_req, res) => {
+    res.json({ ok: true });
+  });
+
+  app.get("/api/health", (_req, res) => {
+    res.json({ ok: true });
+  });
+
   app.use("/api", apiRouter);
   startAuctionScheduler();
   startFootballImportCron();
