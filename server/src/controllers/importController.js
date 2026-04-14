@@ -140,6 +140,7 @@ async function importFootballLeague(req, res, next) {
             pushJobResult(job.id, { teamId, ok: false, error: err?.message || String(err) });
           }
           updateJob(job.id, { progress: { done: i + 1, total: selected.length } });
+          if (i < selected.length - 1) await new Promise((r) => setTimeout(r, 350));
         }
 
         updateJob(job.id, {
