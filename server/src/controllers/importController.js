@@ -102,22 +102,51 @@ async function importFootballLeague(req, res, next) {
     setImmediate(async () => {
       updateJob(job.id, { status: "running", startedAt: new Date().toISOString() });
       try {
-        const teamRows = await getTeams({ leagueId, season });
+        const cacheKey = `football:teams:${leagueId}:${season}`;
+        const cached = await getCachedJson(cacheKey);
+        const teamRows = cached || (await getTeams({ leagueId, season }));
+        if (!cached) {
+          const trimmed = teamRows.map((x) => ({
+            team: { id: x.team?.id, name: x.team?.name, logo: x.team?.logo, country: x.team?.country, founded: x.team?.founded },
+            venue: { name: x.venue?.name, city: x.venue?.city, capacity: x.venue?.capacity },
+          }));
+          await setCachedJson(cacheKey, trimmed, 24 * 60 * 60);
+        }
+
         const ids = teamRows
           .map((t) => Number(t?.team?.id))
           .filter((n) => Number.isFinite(n) && n > 0);
         const selected = limit === null ? ids : ids.slice(0, limit);
         updateJob(job.id, { progress: { done: 0, total: selected.length } });
 
+        if (selected.length === 0) {
+          updateJob(job.id, {
+            status: "failed",
+            finishedAt: new Date().toISOString(),
+            error: `No teams found for leagueId=${leagueId} season=${season}`,
+          });
+          return;
+        }
+
+        let errors = 0;
         for (let i = 0; i < selected.length; i += 1) {
           const teamId = selected[i];
-          const r = await importTeamPlayers({ leagueId, teamId, season });
-          await invalidateTemplatePoolCache();
-          pushJobResult(job.id, { teamId, fetched: r.fetched, upserted: r.upserted });
+          try {
+            const r = await importTeamPlayers({ leagueId, teamId, season });
+            await invalidateTemplatePoolCache();
+            pushJobResult(job.id, { teamId, fetched: r.fetched, upserted: r.upserted, ok: true });
+          } catch (err) {
+            errors += 1;
+            pushJobResult(job.id, { teamId, ok: false, error: err?.message || String(err) });
+          }
           updateJob(job.id, { progress: { done: i + 1, total: selected.length } });
         }
 
-        updateJob(job.id, { status: "completed", finishedAt: new Date().toISOString() });
+        updateJob(job.id, {
+          status: errors > 0 ? "completed_with_errors" : "completed",
+          finishedAt: new Date().toISOString(),
+          error: errors > 0 ? `${errors} team imports failed` : null,
+        });
       } catch (err) {
         updateJob(job.id, { status: "failed", finishedAt: new Date().toISOString(), error: err?.message || String(err) });
       }
