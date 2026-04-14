@@ -369,9 +369,13 @@ export function ScoutingImport() {
                     {leagueJob.results.slice(-10).reverse().map((r, idx) => (
                       <div key={idx} className="bg-surface-container-highest/60 border border-outline-variant/15 rounded-xl p-3 text-[10px]">
                         <div className="text-on-surface-variant uppercase tracking-widest">Team {r.teamId}</div>
-                        <div className="mt-1 text-on-surface">
-                          fetched {r.fetched} • upserted {r.upserted}
-                        </div>
+                        {r.ok === false ? (
+                          <div className="mt-1 text-error truncate">{r.error || "Failed"}</div>
+                        ) : (
+                          <div className="mt-1 text-on-surface">
+                            fetched {r.fetched} • upserted {r.upserted}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
