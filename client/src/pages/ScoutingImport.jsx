@@ -12,6 +12,7 @@ function byName(a, b) {
 export function ScoutingImport() {
   const { token, refreshMe } = useAuth();
   const [season, setSeason] = useState(2023);
+  const [leagueImportLimit, setLeagueImportLimit] = useState(6);
   const [leagues, setLeagues] = useState([]);
   const [teams, setTeams] = useState([]);
   const [leagueId, setLeagueId] = useState("");
@@ -160,8 +161,10 @@ export function ScoutingImport() {
     setLeagueJob(null);
     setResult(null);
     try {
+      const limit = Number(leagueImportLimit);
+      const limitParam = Number.isFinite(limit) && limit > 0 ? `&limit=${encodeURIComponent(Math.floor(limit))}` : "";
       const data = await apiRequest(
-        `/api/import/football/league/${encodeURIComponent(leagueId)}?season=${encodeURIComponent(season)}`,
+        `/api/import/football/league/${encodeURIComponent(leagueId)}?season=${encodeURIComponent(season)}${limitParam}`,
         { method: "POST", headers: authHeaders(token), json: {} }
       );
       setLeagueJobId(data.jobId);
@@ -284,6 +287,26 @@ export function ScoutingImport() {
                   <Icon name="search" className="text-sm" />
                   تحميل
                 </Button>
+              </div>
+            </div>
+
+            <div className="glass-card rounded-xl p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] font-headline font-bold uppercase tracking-widest text-on-surface-variant">حد فرق الدوري</div>
+                <div className="text-[10px] text-on-surface-variant">0 = الكل</div>
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <input
+                  type="number"
+                  min="0"
+                  max="200"
+                  value={leagueImportLimit}
+                  onChange={(e) => setLeagueImportLimit(Number(e.target.value))}
+                  className="w-full bg-surface-container-lowest border border-outline-variant/20 px-4 py-3 font-headline font-black tracking-tight text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none"
+                />
+              </div>
+              <div className="mt-3 text-[10px] text-on-surface-variant">
+                لو حسابك في API‑FOOTBALL محدود، ابدأ بـ 4–8 فرق ثم زود تدريجيًا.
               </div>
             </div>
 
