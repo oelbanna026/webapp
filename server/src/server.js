@@ -11,6 +11,7 @@ const { ensurePlayersSeeded } = require("./utils/seedPlayers");
 const { startAuctionScheduler } = require("./realtime/auctionScheduler");
 const { seedMarketListings } = require("./jobs/marketSeed");
 const { seedEgyptLeagueTemplates } = require("./jobs/seedLocalLeague");
+const { migrateEgyptContent } = require("./jobs/migrateEgyptContent");
 
 async function createServer() {
   const env = getEnv();
@@ -39,7 +40,8 @@ async function createServer() {
   app.use("/api", apiRouter);
   startAuctionScheduler();
   setImmediate(() => {
-    seedEgyptLeagueTemplates()
+    migrateEgyptContent()
+      .then(() => seedEgyptLeagueTemplates())
       .then(() => seedMarketListings())
       .catch(() => void 0);
   });

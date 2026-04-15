@@ -11,6 +11,7 @@ const playerTemplateSchema = new mongoose.Schema(
       season: { type: Number, default: null },
       externalPlayerId: { type: Number, default: null, index: true },
       teamName: { type: String, default: null },
+      seedVersion: { type: Number, default: 1, index: true },
     },
 
     name: { type: String, required: true, trim: true, maxlength: 64 },

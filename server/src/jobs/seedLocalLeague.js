@@ -4,6 +4,7 @@ const { slugify } = require("../utils/playerPool");
 const { LEAGUE_KEY, EGYPT_LEAGUE_TEAMS } = require("../content/egyptLeague");
 
 const PORTRAIT_KEYS = ["p01", "p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10"];
+const SEED_VERSION = 2;
 
 function clamp(n, min, max) {
   const v = Number(n);
@@ -85,7 +86,7 @@ function expandTeamRoster(teamName, tier, basePlayers) {
 }
 
 async function seedEgyptLeagueTemplates() {
-  const exists = await PlayerTemplate.exists({ "source.leagueKey": LEAGUE_KEY, isActive: true });
+  const exists = await PlayerTemplate.exists({ "source.leagueKey": LEAGUE_KEY, "source.seedVersion": SEED_VERSION, isActive: true });
   if (exists) return { inserted: 0, leagueKey: LEAGUE_KEY };
 
   const templates = [];
@@ -104,7 +105,7 @@ async function seedEgyptLeagueTemplates() {
       const templateKey = `${rarity}:${LEAGUE_KEY}:${slugify(p.name)}`;
       templates.push({
         templateKey,
-        source: { provider: "local", leagueKey: LEAGUE_KEY, teamName: t.team, season: 2023 },
+        source: { provider: "local", leagueKey: LEAGUE_KEY, teamName: t.team, season: 2023, seedVersion: SEED_VERSION },
         name: p.name,
         position: String(p.pos || "").toUpperCase(),
         nation: "Egypt",
