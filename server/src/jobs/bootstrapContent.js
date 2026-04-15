@@ -3,6 +3,7 @@ const { getContentConfig } = require("../config/content");
 const { getTeams } = require("../services/footballService");
 const { importTeamPlayers } = require("../services/footballImportService");
 const { invalidateTemplatePoolCache } = require("../services/templatePoolService");
+const { seedMarketListings } = require("./marketSeed");
 
 function isImportEnabled() {
   return String(process.env.ALLOW_FOOTBALL_IMPORT || "").toLowerCase() === "true";
@@ -39,7 +40,8 @@ async function bootstrapLeagueTemplates() {
     }
     if (i < selected.length - 1) await new Promise((r) => setTimeout(r, 450));
   }
+
+  await seedMarketListings();
 }
 
 module.exports = { bootstrapLeagueTemplates };
-
