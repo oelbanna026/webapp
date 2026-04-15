@@ -76,6 +76,35 @@ async function migrateEgyptContent() {
     players = res.modifiedCount || 0;
   }
 
+  const playersMissingAssets = await Player.find({
+    templateKey: { $exists: true, $ne: null },
+    $or: [{ assets: { $exists: false } }, { assets: null }, { position: { $exists: false } }, { position: null }],
+  })
+    .select({ _id: 1, templateKey: 1 })
+    .limit(1500);
+
+  let assetsUpdated = 0;
+  if (playersMissingAssets.length) {
+    const keys = Array.from(new Set(playersMissingAssets.map((p) => String(p.templateKey)).filter(Boolean)));
+    const templates = await PlayerTemplate.find({ templateKey: { $in: keys } }).select({ templateKey: 1, assets: 1, position: 1 });
+    const byKey = new Map(templates.map((t) => [String(t.templateKey), t]));
+    const ops = [];
+    for (const p of playersMissingAssets) {
+      const t = byKey.get(String(p.templateKey));
+      if (!t) continue;
+      ops.push({
+        updateOne: {
+          filter: { _id: p._id },
+          update: { $set: { assets: t.assets || null, position: t.position || null } },
+        },
+      });
+    }
+    if (ops.length) {
+      const res = await Player.bulkWrite(ops, { ordered: false });
+      assetsUpdated = res.modifiedCount || 0;
+    }
+  }
+
   const clubsToFix = await Club.find({
     $or: [{ affiliation: { $exists: false } }, { "affiliation.leagueKey": { $exists: false } }, { "affiliation.teamName": { $exists: false } }],
   }).select({ _id: 1, name: 1, userId: 1, affiliation: 1 });
@@ -124,9 +153,8 @@ async function migrateEgyptContent() {
     clubs = res.modifiedCount || 0;
   }
 
-  if (clubs || playerTemplates || players) await invalidateTemplatePoolCache();
-  return { ok: true, clubs, playerTemplates, players };
+  if (clubs || playerTemplates || players || assetsUpdated) await invalidateTemplatePoolCache();
+  return { ok: true, clubs, playerTemplates, players, assetsUpdated };
 }
 
 module.exports = { migrateEgyptContent };
-

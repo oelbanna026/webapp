@@ -1,4 +1,5 @@
 import { Icon } from "../Icon";
+import { resolveCardFrame, resolvePlayerPortrait } from "../../game/assets";
 
 const FORMATIONS = {
   "4-3-3": [
@@ -108,6 +109,9 @@ const FORMATIONS = {
 };
 
 function Slot({ position, player, onDropPlayer, onClear, onDragStartPlayer, isOver, setOverKey }) {
+  const rarity = player?.rarity || "common";
+  const frameSrc = player ? resolveCardFrame(rarity) : null;
+  const portraitSrc = player ? resolvePlayerPortrait(player) : null;
   return (
     <div
       onDragOver={(e) => {
@@ -124,7 +128,7 @@ function Slot({ position, player, onDropPlayer, onClear, onDragStartPlayer, isOv
       style={{ left: `${position.x}%`, top: `${position.y}%` }}
     >
       <div
-        className={`w-24 sm:w-28 rounded-xl border backdrop-blur-md transition-all ${
+        className={`w-[88px] sm:w-[96px] rounded-xl border backdrop-blur-md transition-all ${
           isOver ? "border-primary/60 bg-surface-container-highest/80" : "border-outline-variant/20 bg-surface-container-highest/60"
         }`}
       >
@@ -146,12 +150,19 @@ function Slot({ position, player, onDropPlayer, onClear, onDragStartPlayer, isOv
           <div
             draggable
             onDragStart={(e) => onDragStartPlayer(position.key, e)}
-            className="px-3 pb-3 cursor-grab active:cursor-grabbing"
+            className="px-2 pb-2 cursor-grab active:cursor-grabbing"
           >
-            <div className="font-headline font-black tracking-tight truncate">{player.name}</div>
-            <div className="mt-1 flex items-center justify-between text-[10px] font-headline font-bold uppercase tracking-widest">
-              <span className="text-primary">{player.rating} OVR</span>
-              <span className="text-on-surface-variant">{player.rarity}</span>
+            <div className="relative w-full aspect-[2/3] rounded-lg overflow-hidden border border-outline-variant/10 bg-surface/10">
+              {frameSrc ? <img src={frameSrc} alt="" className="absolute inset-0 w-full h-full object-cover opacity-95" /> : null}
+              {portraitSrc ? <img src={portraitSrc} alt="" className="absolute inset-0 w-full h-full object-cover object-top" /> : null}
+              <div className="absolute inset-0 bg-gradient-to-t from-surface/90 via-transparent to-transparent" />
+              <div className="absolute top-2 left-2 text-[10px] font-headline font-black text-primary">{player.rating}</div>
+              <div className="absolute top-2 right-2 text-[10px] font-headline font-black text-on-surface-variant">
+                {String(player.position || position.key)}
+              </div>
+              <div className="absolute inset-x-2 bottom-2">
+                <div className="text-[10px] font-headline font-black text-on-surface truncate">{player.name}</div>
+              </div>
             </div>
           </div>
         ) : (
