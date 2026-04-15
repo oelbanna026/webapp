@@ -14,6 +14,28 @@ const PRESET_LOGOS = [
   { id: "classic-crown", label: "Epsilon" },
 ];
 
+const EGYPT_TEAMS = [
+  "Cairo Warriors",
+  "Nile Kings",
+  "Alexandria Waves",
+  "Delta Eagles",
+  "Pharaohs Club",
+  "Upper Egypt SC",
+  "Canal Fighters",
+  "Red Desert FC",
+  "Blue Nile FC",
+  "Golden Pyramids",
+  "Suez Mariners",
+  "Sinai Stars",
+  "Delta Lions",
+  "Cairo Falcons",
+  "Giza Titans",
+  "Luxor Legends",
+  "Port Said Pirates",
+  "Aswan Warriors",
+  "Capital United",
+];
+
 const PRIMARY_SWATCHES = ["#81ecff", "#c3f400", "#a2aaff", "#ff716c"];
 const SECONDARY_SWATCHES = ["#c3f400", "#20262f", "#ffffff", "#8d96f4"];
 
@@ -56,6 +78,7 @@ export function ClubWizardKinetic() {
 
   const [name, setName] = useState("");
   const [nameStatus, setNameStatus] = useState({ checking: false, available: null });
+  const [teamName, setTeamName] = useState(EGYPT_TEAMS[0]);
   const [presetLogoId, setPresetLogoId] = useState(PRESET_LOGOS[0].id);
   const [logoMode, setLogoMode] = useState("preset");
   const [aiLogoUrl, setAiLogoUrl] = useState("");
@@ -133,6 +156,7 @@ export function ClubWizardKinetic() {
     try {
       const payload = {
         name: name.trim(),
+        affiliation: { leagueKey: "egypt", teamName },
         logo:
           logoMode === "preset"
             ? { type: "preset", presetId: presetLogoId }
@@ -213,6 +237,25 @@ export function ClubWizardKinetic() {
                           cancel
                         </span>
                       ) : null}
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <div className="text-[10px] font-headline font-bold uppercase tracking-widest text-on-surface-variant mb-2">
+                      League Team (Egypt)
+                    </div>
+                    <select
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      className="w-full bg-surface-container-lowest border border-outline-variant/20 px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none"
+                    >
+                      {EGYPT_TEAMS.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="mt-2 text-[10px] text-on-surface-variant">
+                      سيتم إنشاء تشكيلة بداية (4‑3‑3) من هذا الفريق تلقائيًا + باكات بداية.
                     </div>
                   </div>
                 </div>

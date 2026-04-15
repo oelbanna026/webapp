@@ -34,6 +34,12 @@ const clubSchema = new mongoose.Schema(
       id: { type: String, required: true, default: "night-bowl" },
       name: { type: String, required: true, default: "Night Bowl" },
     },
+    affiliation: {
+      leagueKey: { type: String, default: "egypt" },
+      teamName: { type: String, default: null },
+      tier: { type: String, default: null },
+      style: { type: String, default: null },
+    },
   },
   { timestamps: true }
 );
@@ -47,6 +53,7 @@ clubSchema.methods.toPublicJSON = function toPublicJSON() {
     coach: this.coach,
     theme: this.theme,
     stadium: this.stadium,
+    affiliation: this.affiliation,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

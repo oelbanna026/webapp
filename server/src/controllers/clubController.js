@@ -1,8 +1,13 @@
 const { Club } = require("../models/Club");
 const { createHttpError } = require("../utils/createHttpError");
 const { User } = require("../models/User");
+const { PlayerTemplate } = require("../models/PlayerTemplate");
+const { Player } = require("../models/Player");
+const { Squad } = require("../models/Squad");
 const { creditCoins } = require("../services/coinService");
 const { runWithOptionalTransaction } = require("../utils/runWithOptionalTransaction");
+const { getContentConfig } = require("../config/content");
+const { findTeam } = require("../content/leagueRegistry");
 
 function normalizeName(name) {
   return String(name || "").trim();
@@ -41,6 +46,12 @@ function coachBonuses(type) {
   if (type === "attacking") return { type, bonusAttack: 10, bonusDefense: 0, bonusAll: 0 };
   if (type === "defensive") return { type, bonusAttack: 0, bonusDefense: 10, bonusAll: 0 };
   return { type: "balanced", bonusAttack: 0, bonusDefense: 0, bonusAll: 5 };
+}
+
+function avgRating(players) {
+  if (!players.length) return 0;
+  const sum = players.reduce((acc, p) => acc + Number(p.rating || 0), 0);
+  return Math.round(sum / players.length);
 }
 
 async function checkName(req, res, next) {
@@ -110,6 +121,15 @@ async function createClub(req, res, next) {
     const hookCoins = 2000;
     const hookPacks = 2;
 
+    const content = getContentConfig();
+    const leagueKey = String(req.body.affiliation?.leagueKey || content.leagueKeys?.[0] || "egypt")
+      .trim()
+      .toLowerCase();
+    const teamName = String(req.body.affiliation?.teamName || "").trim();
+    if (!teamName) throw createHttpError(400, "Missing team selection");
+    const teamMeta = findTeam(leagueKey, teamName);
+    if (!teamMeta) throw createHttpError(400, "Invalid team selection");
+
     const { club: created, user: updatedUser } = await runWithOptionalTransaction(async (session) => {
       const club = await Club.create(
         [
@@ -122,6 +142,7 @@ async function createClub(req, res, next) {
             coach: coachBonuses(coachType),
             theme,
             stadium,
+            affiliation: { leagueKey, teamName, tier: teamMeta.tier, style: teamMeta.style },
           },
         ],
         session ? { session } : undefined
@@ -132,6 +153,77 @@ async function createClub(req, res, next) {
       u.starterPacks = (u.starterPacks || 0) + hookPacks;
       if (session) await u.save({ session });
       else await u.save();
+
+      const templateQuery = { isActive: true, "source.leagueKey": leagueKey, "source.teamName": teamName };
+      const templates = session ? await PlayerTemplate.find(templateQuery).session(session) : await PlayerTemplate.find(templateQuery);
+      if (templates.length < 11) throw createHttpError(409, "Not enough players for selected team");
+
+      const upperPos = (t) => String(t.position || "").toUpperCase();
+      const sortByRating = (arr) => arr.slice().sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
+      const pool = sortByRating(templates);
+      const used = new Set();
+      const takeFirst = (arr) => {
+        for (const t of arr) {
+          const key = String(t.templateKey);
+          if (used.has(key)) continue;
+          used.add(key);
+          return t;
+        }
+        return null;
+      };
+
+      const gk = takeFirst(sortByRating(pool.filter((t) => upperPos(t) === "GK"))) || takeFirst(pool);
+      const def = sortByRating(pool.filter((t) => ["RB", "LB", "CB", "RCB", "LCB", "RWB", "LWB"].includes(upperPos(t))));
+      const mid = sortByRating(pool.filter((t) => ["CDM", "LDM", "RDM", "CM", "LCM", "RCM", "CAM", "LAM", "RAM"].includes(upperPos(t))));
+      const atk = sortByRating(pool.filter((t) => ["ST", "ST2", "LW", "RW", "LM", "RM"].includes(upperPos(t))));
+
+      const lb = takeFirst(sortByRating(def.filter((t) => ["LB", "LWB"].includes(upperPos(t))))) || takeFirst(def);
+      const lcb = takeFirst(sortByRating(def.filter((t) => ["LCB", "CB"].includes(upperPos(t))))) || takeFirst(def);
+      const rcb = takeFirst(sortByRating(def.filter((t) => ["RCB", "CB"].includes(upperPos(t))))) || takeFirst(def);
+      const rb = takeFirst(sortByRating(def.filter((t) => ["RB", "RWB"].includes(upperPos(t))))) || takeFirst(def);
+
+      const lcm = takeFirst(mid);
+      const cm = takeFirst(mid);
+      const rcm = takeFirst(mid);
+
+      const lw = takeFirst(sortByRating(atk.filter((t) => ["LW", "LM"].includes(upperPos(t))))) || takeFirst(atk);
+      const st = takeFirst(sortByRating(atk.filter((t) => ["ST", "ST2"].includes(upperPos(t))))) || takeFirst(atk);
+      const rw = takeFirst(sortByRating(atk.filter((t) => ["RW", "RM"].includes(upperPos(t))))) || takeFirst(atk);
+
+      const picked = [gk, lb, lcb, rcb, rb, lcm, cm, rcm, lw, st, rw].filter(Boolean);
+      const remaining = pool.filter((t) => !used.has(String(t.templateKey)));
+      while (picked.length < 11 && remaining.length) picked.push(remaining.shift());
+      if (picked.length < 11) throw createHttpError(409, "Not enough players for starter squad");
+
+      const playerDocs = picked.slice(0, 11).map((t) => ({
+        name: t.name,
+        rating: t.rating,
+        stats: t.stats,
+        rarity: t.rarity,
+        nation: t.nation || null,
+        clubName: t.clubName || null,
+        ownerId: u._id,
+        templateKey: t.templateKey,
+      }));
+      const createdPlayers = session ? await Player.insertMany(playerDocs, { session }) : await Player.insertMany(playerDocs);
+
+      const slots = {
+        GK: createdPlayers[0]?._id || null,
+        LB: createdPlayers[1]?._id || null,
+        LCB: createdPlayers[2]?._id || null,
+        RCB: createdPlayers[3]?._id || null,
+        RB: createdPlayers[4]?._id || null,
+        LCM: createdPlayers[5]?._id || null,
+        CM: createdPlayers[6]?._id || null,
+        RCM: createdPlayers[7]?._id || null,
+        LW: createdPlayers[8]?._id || null,
+        ST: createdPlayers[9]?._id || null,
+        RW: createdPlayers[10]?._id || null,
+      };
+      const rating = avgRating(createdPlayers);
+      const q = Squad.findOneAndUpdate({ userId }, { $set: { formation: "4-3-3", slots, rating } }, { upsert: true, new: true });
+      if (session) await q.session(session);
+      else await q;
 
       const { user: afterCredit } = await creditCoins(
         { userId, amount: hookCoins, type: "CLUB_CREATION_HOOK", idempotencyKey: `club-hook:${nameLower}` },
