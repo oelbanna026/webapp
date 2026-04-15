@@ -5,6 +5,7 @@ import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { Input } from "../components/Input";
+import { PlayerCard } from "../game/components/PlayerCard";
 
 function formatTimeLeft(endsAt) {
   if (!endsAt) return "—";
@@ -506,10 +507,16 @@ export function TransferMarket() {
                       className="bg-surface-container-highest/60 border border-outline-variant/20 rounded-xl p-4"
                     >
                       <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <div className="font-headline font-black truncate">{l.player?.name || "Unknown Player"}</div>
-                          <div className="mt-1 text-[10px] font-headline font-bold uppercase tracking-widest text-on-surface-variant">
-                            {l.player?.rarity || "—"} • {l.player?.rating || "—"} OVR • {l.type.toUpperCase()}
+                        <div className="flex items-start gap-4 min-w-0">
+                          <div className="shrink-0">{l.player ? <PlayerCard player={l.player} variant="compact" /> : null}</div>
+                          <div className="min-w-0">
+                            <div className="font-headline font-black truncate">{l.player?.name || "Unknown Player"}</div>
+                            <div className="mt-1 text-[10px] font-headline font-bold uppercase tracking-widest text-on-surface-variant">
+                              {l.player?.rarity || "—"} • {l.player?.rating || "—"} OVR • {l.type.toUpperCase()}
+                            </div>
+                            <div className="mt-1 text-[10px] text-on-surface-variant uppercase tracking-widest truncate">
+                              {[l.player?.position, l.player?.clubName].filter(Boolean).join(" • ")}
+                            </div>
                           </div>
                         </div>
                         <div className="text-right">

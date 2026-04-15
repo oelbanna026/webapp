@@ -2,10 +2,14 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import { useClub } from "../../club/useClub";
 import { Icon } from "../Icon";
+import { resolveClubLogo, resolveKit } from "../../game/assets";
 
 export function TopBar() {
   const { user, logout } = useAuth();
   const { club } = useClub();
+  const teamName = club?.affiliation?.teamName || club?.name || null;
+  const logoSrc = club?.affiliation?.teamName ? resolveClubLogo({ leagueKey: club?.affiliation?.leagueKey, teamName: club?.affiliation?.teamName }) : null;
+  const kitHomeSrc = club?.affiliation?.teamName ? resolveKit({ leagueKey: club?.affiliation?.leagueKey, teamName: club?.affiliation?.teamName, variant: "home" }) : null;
 
   return (
     <header className="fixed top-0 w-full z-50 bg-[#0a0e14]/80 backdrop-blur-xl border-b border-[#44484f]/15 shadow-[0_20px_40px_rgba(0,227,253,0.08)] flex justify-between items-center px-6 h-16">
@@ -14,13 +18,24 @@ export function TopBar() {
           <Link to="/" className="text-2xl font-black tracking-tighter text-[#00E5FF] font-headline uppercase">
             STADIUM_OS
           </Link>
-          {club?.name ? (
+          {teamName ? (
             <div className="hidden lg:inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest/40 rounded-lg border border-outline-variant/10">
-              <Icon name="shield" className="text-primary text-sm" />
+              {logoSrc ? (
+                <div className="w-7 h-7 rounded-lg overflow-hidden border border-outline-variant/15 bg-surface-container-highest/60">
+                  <img src={logoSrc} alt="" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <Icon name="shield" className="text-primary text-sm" />
+              )}
               <div className="leading-tight">
-                <div className="font-headline font-bold text-xs tracking-tight">{club.name}</div>
+                <div className="font-headline font-bold text-xs tracking-tight">{teamName}</div>
                 {club?.stadium?.name ? <div className="text-[10px] text-on-surface-variant">{club.stadium.name}</div> : null}
               </div>
+              {kitHomeSrc ? (
+                <div className="ml-2 w-8 h-8 rounded-lg overflow-hidden border border-outline-variant/15 bg-surface-container-highest/60">
+                  <img src={kitHomeSrc} alt="" className="w-full h-full object-cover" />
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
