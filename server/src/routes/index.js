@@ -10,9 +10,6 @@ const { packRouter } = require("./packRoutes");
 const { clubRouter } = require("./clubRoutes");
 const { aiRouter } = require("./aiRoutes");
 const { eventRouter } = require("./eventRoutes");
-const { importRouter } = require("./importRoutes");
-const { scoutingRouter } = require("./scoutingRoutes");
-const { getContentConfig } = require("../config/content");
 
 const apiRouter = express.Router();
 
@@ -27,7 +24,5 @@ apiRouter.use("/packs", packRouter);
 apiRouter.use("/clubs", clubRouter);
 apiRouter.use("/ai", aiRouter);
 apiRouter.use("/events", eventRouter);
-apiRouter.use("/import", importRouter);
-if (getContentConfig().enableScouting) apiRouter.use("/scouting", scoutingRouter);
 
 module.exports = { apiRouter };

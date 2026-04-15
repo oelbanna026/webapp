@@ -1,6 +1,5 @@
 const bcrypt = require("bcryptjs");
 const { User } = require("../models/User");
-const { Player } = require("../models/Player");
 const { createHttpError } = require("../utils/createHttpError");
 const { signAccessToken } = require("../utils/jwt");
 
@@ -23,11 +22,7 @@ async function signup(req, res, next) {
     if (password.length < 8) throw createHttpError(400, "Password must be at least 8 characters");
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, email, passwordHash, coins: 1000 });
-    const starters = await Player.find({ ownerId: null }).sort({ rating: -1 }).limit(12).select({ _id: 1 });
-    if (starters.length > 0) {
-      await Player.updateMany({ _id: { $in: starters.map((p) => p._id) } }, { $set: { ownerId: user._id } });
-    }
+    const user = await User.create({ username, email, passwordHash, coins: 2000, starterPacks: 2 });
     const token = signAccessToken(user);
 
     res.status(201).json({ token, user: user.toPublicJSON() });

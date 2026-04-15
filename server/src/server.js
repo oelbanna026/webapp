@@ -9,9 +9,8 @@ const { notFound } = require("./middleware/notFound");
 const { apiRouter } = require("./routes");
 const { ensurePlayersSeeded } = require("./utils/seedPlayers");
 const { startAuctionScheduler } = require("./realtime/auctionScheduler");
-const { startFootballImportCron } = require("./jobs/footballImportCron");
-const { bootstrapLeagueTemplates } = require("./jobs/bootstrapContent");
 const { seedMarketListings } = require("./jobs/marketSeed");
+const { seedEgyptLeagueTemplates } = require("./jobs/seedLocalLeague");
 
 async function createServer() {
   const env = getEnv();
@@ -39,10 +38,10 @@ async function createServer() {
 
   app.use("/api", apiRouter);
   startAuctionScheduler();
-  startFootballImportCron();
   setImmediate(() => {
-    bootstrapLeagueTemplates().catch(() => void 0);
-    seedMarketListings().catch(() => void 0);
+    seedEgyptLeagueTemplates()
+      .then(() => seedMarketListings())
+      .catch(() => void 0);
   });
 
   app.use(notFound);

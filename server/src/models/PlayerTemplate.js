@@ -4,11 +4,13 @@ const playerTemplateSchema = new mongoose.Schema(
   {
     templateKey: { type: String, required: true, unique: true, index: true },
     source: {
-      provider: { type: String, required: true, default: "api-football" },
+      provider: { type: String, required: true, default: "local" },
+      leagueKey: { type: String, default: null, index: true },
       leagueId: { type: Number, default: null },
       teamId: { type: Number, default: null },
       season: { type: Number, default: null },
       externalPlayerId: { type: Number, default: null, index: true },
+      teamName: { type: String, default: null },
     },
 
     name: { type: String, required: true, trim: true, maxlength: 64 },
@@ -33,4 +35,3 @@ const playerTemplateSchema = new mongoose.Schema(
 const PlayerTemplate = mongoose.model("PlayerTemplate", playerTemplateSchema);
 
 module.exports = { PlayerTemplate };
-

@@ -18,7 +18,7 @@ async function invalidateTemplatePoolCache() {
   const keys = [];
   for (const r of RARITIES) {
     keys.push(`tplpool:${r}`);
-    keys.push(`tplpool:${r}:l*`);
+    keys.push(`tplpool:${r}:k*`);
   }
   const expanded = [];
   for (const k of keys) {
@@ -34,7 +34,7 @@ async function invalidateTemplatePoolCache() {
 
 async function getTemplatePoolForRarity(rarity) {
   const cfg = getContentConfig();
-  const suffix = cfg.leagueIds.length ? `:l${cfg.leagueIds.join(",")}` : "";
+  const suffix = cfg.leagueKeys.length ? `:k${cfg.leagueKeys.join(",")}` : "";
   const now = Date.now();
   if (now - cache.at < CACHE_TTL_MS && cache.byRarity.has(rarity)) return cache.byRarity.get(rarity);
 
@@ -50,7 +50,7 @@ async function getTemplatePoolForRarity(rarity) {
   }
 
   const query = { rarity, isActive: true };
-  if (cfg.leagueIds.length) query["source.leagueId"] = { $in: cfg.leagueIds };
+  if (cfg.leagueKeys.length) query["source.leagueKey"] = { $in: cfg.leagueKeys };
   const rows = await PlayerTemplate.find(query).sort({ rating: -1, name: 1 }).limit(300);
   cache.at = now;
   const mapped = rows.map((r) => r.toObject());
