@@ -76,8 +76,10 @@ async function seedMarketListings() {
       rating: t.rating,
       stats: t.stats,
       rarity: t.rarity,
+      position: t.position || null,
       nation: t.nation || null,
       clubName: t.clubName || null,
+      assets: t.assets || null,
       ownerId: new mongoose.Types.ObjectId(String(bot._id)),
       templateKey: tk,
     });
@@ -93,4 +95,3 @@ async function seedMarketListings() {
 }
 
 module.exports = { seedMarketListings };
-

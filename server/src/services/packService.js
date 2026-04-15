@@ -139,8 +139,10 @@ async function openPack({ userId, packType = "standard" }) {
       rating: template.rating,
       stats: template.stats,
       rarity: template.rarity,
+      position: template.position || null,
       nation: template.nation || null,
       clubName: template.clubName || null,
+      assets: template.assets || null,
       ownerId: user._id,
       templateKey,
     });

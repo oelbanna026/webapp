@@ -3,6 +3,8 @@ const { invalidateTemplatePoolCache } = require("../services/templatePoolService
 const { slugify } = require("../utils/playerPool");
 const { LEAGUE_KEY, EGYPT_LEAGUE_TEAMS } = require("../content/egyptLeague");
 
+const PORTRAIT_KEYS = ["p01", "p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10"];
+
 function clamp(n, min, max) {
   const v = Number(n);
   if (!Number.isFinite(v)) return min;
@@ -98,6 +100,7 @@ async function seedEgyptLeagueTemplates() {
       const rng = xorshift32(externalSeed);
       const rarity = rarityFromRating(p.rating, rng);
       const stats = statsFromPosition(p.pos, p.rating, rng);
+      const portraitKey = PORTRAIT_KEYS[Math.floor(rng() * PORTRAIT_KEYS.length)];
       const templateKey = `${rarity}:${LEAGUE_KEY}:${slugify(p.name)}`;
       templates.push({
         templateKey,
@@ -107,6 +110,7 @@ async function seedEgyptLeagueTemplates() {
         nation: "Egypt",
         clubName: t.team,
         imageUrl: null,
+        assets: { portraitKey, cardFrameKey: null, kitKey: null, logoKey: null },
         rating: p.rating,
         rarity,
         stats,
@@ -128,4 +132,3 @@ async function seedEgyptLeagueTemplates() {
 }
 
 module.exports = { seedEgyptLeagueTemplates };
-

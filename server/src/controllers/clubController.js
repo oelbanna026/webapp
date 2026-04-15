@@ -200,8 +200,10 @@ async function createClub(req, res, next) {
         rating: t.rating,
         stats: t.stats,
         rarity: t.rarity,
+        position: t.position || null,
         nation: t.nation || null,
         clubName: t.clubName || null,
+        assets: t.assets || null,
         ownerId: u._id,
         templateKey: t.templateKey,
       }));

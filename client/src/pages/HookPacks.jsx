@@ -6,13 +6,7 @@ import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { useSfx } from "../hooks/useSfx";
-
-const RARITY_STYLES = {
-  common: { glow: "shadow-[0_0_60px_rgba(129,236,255,0.15)]", label: "text-on-surface-variant" },
-  rare: { glow: "shadow-[0_0_80px_rgba(129,236,255,0.35)]", label: "text-primary" },
-  epic: { glow: "shadow-[0_0_100px_rgba(162,170,255,0.45)]", label: "text-tertiary" },
-  legendary: { glow: "shadow-[0_0_120px_rgba(195,244,0,0.45)]", label: "text-secondary" },
-};
+import { PlayerCard } from "../game/components/PlayerCard";
 
 function Stat({ label, value }) {
   return (
@@ -117,8 +111,6 @@ export function HookPacks() {
   }, [isOpening, isSyncing, openOne, remaining, stage, user]);
 
   const canContinue = remaining === 0 && opened.length >= 2;
-  const rarity = current?.rarity || "common";
-  const styles = RARITY_STYLES[rarity] || RARITY_STYLES.common;
 
   useEffect(() => {
     if (!canContinue) return;
@@ -253,45 +245,20 @@ export function HookPacks() {
 
                 {stage === "reveal" && current?.player ? (
                   <div className="absolute inset-0 grid place-items-center p-6">
-                    <div
-                      className={`relative w-full max-w-md mx-auto rounded-2xl border border-outline-variant/20 bg-surface-container-highest/60 backdrop-blur-md overflow-hidden ${styles.glow}`}
-                    >
-                      <div className="absolute inset-0 pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-surface to-transparent opacity-60" />
-                        <div className="absolute -inset-24 bg-gradient-to-br from-primary/15 via-transparent to-secondary/10 blur-2xl" />
-                      </div>
-                      <div className="relative p-6">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className="text-[10px] font-headline font-bold uppercase tracking-widest text-on-surface-variant">PLAYER</div>
-                            <div className="mt-2 font-headline font-black text-2xl tracking-tight truncate">{current.player.name}</div>
-                            <div className={`mt-2 text-[10px] font-headline font-bold uppercase tracking-widest ${styles.label}`}>{rarity}</div>
-                            {current.limitedHit ? (
-                              <div className="mt-2 inline-flex items-center gap-2 text-[10px] font-headline font-bold uppercase tracking-widest text-secondary">
-                                <Icon name="local_fire_department" className="text-sm" filled />
-                                LIMITED
-                              </div>
-                            ) : null}
-                            {current.duplicate ? (
-                              <div className="mt-2 inline-flex items-center gap-2 text-[10px] font-headline font-bold uppercase tracking-widest text-secondary">
-                                <Icon name="repeat" className="text-sm" />
-                                DUPLICATE +{current.coinsAwarded?.toLocaleString?.()} COINS
-                              </div>
-                            ) : null}
-                          </div>
-                          <div className="text-right">
-                            <div className="text-[10px] font-headline font-bold uppercase tracking-widest text-on-surface-variant">OVR</div>
-                            <div className="mt-1 font-headline font-black text-5xl text-primary tracking-tighter leading-none">{current.player.rating}</div>
-                          </div>
+                    <div className="relative">
+                      <PlayerCard player={current.player} />
+                      {current.limitedHit ? (
+                        <div className="absolute top-3 left-3 inline-flex items-center gap-2 text-[10px] font-headline font-bold uppercase tracking-widest text-secondary bg-surface-container-highest/70 border border-outline-variant/15 rounded-xl px-3 py-2">
+                          <Icon name="local_fire_department" className="text-sm" filled />
+                          LIMITED
                         </div>
-
-                        <div className="mt-6 grid grid-cols-2 gap-3">
-                          <Stat label="Pace" value={current.player.stats.pace} />
-                          <Stat label="Shooting" value={current.player.stats.shooting} />
-                          <Stat label="Passing" value={current.player.stats.passing} />
-                          <Stat label="Defense" value={current.player.stats.defense} />
+                      ) : null}
+                      {current.duplicate ? (
+                        <div className="absolute top-3 right-3 inline-flex items-center gap-2 text-[10px] font-headline font-bold uppercase tracking-widest text-secondary bg-surface-container-highest/70 border border-outline-variant/15 rounded-xl px-3 py-2">
+                          <Icon name="repeat" className="text-sm" />
+                          +{current.coinsAwarded?.toLocaleString?.()} COINS
                         </div>
-                      </div>
+                      ) : null}
                     </div>
                   </div>
                 ) : null}
@@ -307,17 +274,14 @@ export function HookPacks() {
                   opened.map((o, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between gap-4 bg-surface-container-highest/70 border border-outline-variant/15 rounded-xl px-3 py-3"
+                      className="flex items-center gap-4 bg-surface-container-highest/70 border border-outline-variant/15 rounded-xl px-3 py-3"
                     >
-                      <div className="min-w-0">
+                      <div className="shrink-0">{o.player ? <PlayerCard player={o.player} variant="compact" /> : null}</div>
+                      <div className="min-w-0 flex-1">
                         <div className="font-headline font-black truncate">{o.player?.name || "—"}</div>
                         <div className="mt-1 text-[10px] font-headline font-bold uppercase tracking-widest text-on-surface-variant">
                           {o.rarity} • {o.duplicate ? `Duplicate +${o.coinsAwarded}` : "New"}
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-headline font-black text-2xl text-primary tracking-tighter">{o.player?.rating ?? "—"}</div>
-                        <div className="mt-1 text-[10px] text-on-surface-variant">OVR</div>
                       </div>
                     </div>
                   ))

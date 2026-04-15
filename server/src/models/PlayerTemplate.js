@@ -18,6 +18,12 @@ const playerTemplateSchema = new mongoose.Schema(
     nation: { type: String, default: null },
     clubName: { type: String, default: null },
     imageUrl: { type: String, default: null },
+    assets: {
+      portraitKey: { type: String, default: null },
+      cardFrameKey: { type: String, default: null },
+      kitKey: { type: String, default: null },
+      logoKey: { type: String, default: null },
+    },
 
     rating: { type: Number, required: true, min: 1, max: 99 },
     rarity: { type: String, required: true, enum: ["common", "rare", "epic", "legendary"], index: true },
