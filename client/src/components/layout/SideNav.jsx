@@ -32,7 +32,6 @@ export function SideNav() {
           <NavItem to="/squad" icon="group" label="Squad" />
           <NavItem to="/upgrade" icon="upgrade" label="Upgrade" />
           <NavItem to="/market" icon="shopping_cart" label="Market" />
-          <NavItem to="/scouting" icon="search" label="Scouting" />
           <NavItem to="/missions" icon="task_alt" label="Missions" />
           <NavItem to="/leaderboard" icon="emoji_events" label="Leagues" />
           <NavItem to="/live" icon="fitness_center" label="Training" />

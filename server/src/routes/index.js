@@ -12,6 +12,7 @@ const { aiRouter } = require("./aiRoutes");
 const { eventRouter } = require("./eventRoutes");
 const { importRouter } = require("./importRoutes");
 const { scoutingRouter } = require("./scoutingRoutes");
+const { getContentConfig } = require("../config/content");
 
 const apiRouter = express.Router();
 
@@ -27,6 +28,6 @@ apiRouter.use("/clubs", clubRouter);
 apiRouter.use("/ai", aiRouter);
 apiRouter.use("/events", eventRouter);
 apiRouter.use("/import", importRouter);
-apiRouter.use("/scouting", scoutingRouter);
+if (getContentConfig().enableScouting) apiRouter.use("/scouting", scoutingRouter);
 
 module.exports = { apiRouter };

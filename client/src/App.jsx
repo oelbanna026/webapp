@@ -14,7 +14,6 @@ import { HookPacks } from "./pages/HookPacks";
 import { Leaderboard } from "./pages/Leaderboard";
 import { PlayerUpgrades } from "./pages/PlayerUpgrades";
 import { Missions } from "./pages/Missions";
-import { ScoutingImport } from "./pages/ScoutingImport";
 
 export default function App() {
   return (
@@ -34,7 +33,6 @@ export default function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/upgrade" element={<PlayerUpgrades />} />
           <Route path="/missions" element={<Missions />} />
-          <Route path="/scouting" element={<ScoutingImport />} />
           <Route path="/live" element={<LiveStrategyConsole />} />
           <Route path="/live-simple" element={<LiveMatch />} />
         </Route>
