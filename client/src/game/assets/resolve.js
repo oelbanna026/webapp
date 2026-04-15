@@ -6,11 +6,16 @@ function normalizeKey(s) {
 }
 
 function slugify(s) {
-  return String(s || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  let out = String(s || "").trim();
+  if (!out) return "";
+  out = out.replace(/\s+/g, "-");
+  try {
+    out = out.replace(/[^\p{L}\p{N}-]+/gu, "");
+  } catch {
+    out = out.replace(/[^A-Za-z0-9\u0600-\u06FF-]+/g, "");
+  }
+  out = out.replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+  return out.toLowerCase();
 }
 
 function getOverride(path) {
@@ -48,4 +53,3 @@ export function resolveKit({ leagueKey = "egypt", teamName, variant = "home" }) 
   const base = assetManifest.clubs.kits[league]?.[variant] || assetManifest.clubs.kits.egypt?.[variant] || `${assetManifest.base}/kits/`;
   return `${base}${team}.png`;
 }
-
