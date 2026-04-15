@@ -1,6 +1,8 @@
 import { Icon } from "../Icon";
 import { resolveCardFrame, resolvePlayerPortrait } from "../../game/assets";
 
+const SHIELD_CLIP = "polygon(50% 0%, 86% 16%, 86% 74%, 50% 100%, 14% 74%, 14% 16%)";
+
 const FORMATIONS = {
   "4-3-3": [
     { key: "LW", label: "LW", x: 25, y: 22 },
@@ -154,14 +156,24 @@ function Slot({ position, player, onDropPlayer, onClear, onDragStartPlayer, isOv
           >
             <div className="relative w-full aspect-[2/3] rounded-lg overflow-hidden border border-outline-variant/10 bg-surface/10">
               {frameSrc ? <img src={frameSrc} alt="" className="absolute inset-0 w-full h-full object-cover opacity-95" /> : null}
-              {portraitSrc ? <img src={portraitSrc} alt="" className="absolute inset-0 w-full h-full object-cover object-top" /> : null}
-              <div className="absolute inset-0 bg-gradient-to-t from-surface/90 via-transparent to-transparent" />
+              {portraitSrc ? (
+                <div
+                  className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 w-[46%] h-[38%] overflow-hidden"
+                  style={{ clipPath: SHIELD_CLIP }}
+                >
+                  <img src={portraitSrc} alt="" className="absolute inset-0 w-full h-full object-cover object-top" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-surface/35" />
+                </div>
+              ) : null}
+              <div className="absolute inset-0 hud-scanline opacity-10" />
               <div className="absolute top-2 left-2 text-[10px] font-headline font-black text-primary">{player.rating}</div>
               <div className="absolute top-2 right-2 text-[10px] font-headline font-black text-on-surface-variant">
                 {String(player.position || position.key)}
               </div>
-              <div className="absolute inset-x-2 bottom-2">
-                <div className="text-[10px] font-headline font-black text-on-surface truncate">{player.name}</div>
+              <div className="absolute inset-x-[10%] top-[69%]">
+                <div className="bg-surface/70 border border-outline-variant/15 rounded-lg px-2 py-1 backdrop-blur-md">
+                  <div className="text-[10px] font-headline font-black text-on-surface truncate">{player.name}</div>
+                </div>
               </div>
             </div>
           </div>

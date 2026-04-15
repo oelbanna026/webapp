@@ -37,7 +37,18 @@ export function resolveCardFrame(rarity) {
 export function resolvePlayerPortrait(player) {
   const key = normalizeKey(player?.assets?.portraitKey);
   if (key) return getOverride(`players.portraits.${key}`) || assetManifest.players.portraits[key] || null;
-  return null;
+  const tk = normalizeKey(player?.templateKey);
+  if (!tk) return null;
+  const keys = Object.keys(assetManifest.players.portraits || {});
+  if (!keys.length) return null;
+  let h = 2166136261;
+  for (let i = 0; i < tk.length; i += 1) {
+    h ^= tk.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const idx = (h >>> 0) % keys.length;
+  const fallbackKey = keys[idx];
+  return getOverride(`players.portraits.${fallbackKey}`) || assetManifest.players.portraits[fallbackKey] || null;
 }
 
 export function resolveClubLogo({ leagueKey = "egypt", teamName }) {
